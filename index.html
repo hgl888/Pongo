@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Pongo by ChenReason</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="javascripts/main.js"></script>
     <!--[if lt IE 9]>
@@ -24,13 +22,6 @@
       <div id="banner">
         <span id="logo"></span>
 
-        <a href="https://github.com/ChenReason/pongo" class="button fork"><strong>View On GitHub</strong></a>
-        <div class="downloads">
-          <span>Downloads:</span>
-          <ul>
-            <li><a href="https://github.com/ChenReason/pongo/zipball/master" class="button">ZIP</a></li>
-            <li><a href="https://github.com/ChenReason/pongo/tarball/master" class="button">TAR</a></li>
-          </ul>
         </div>
       </div><!-- end banner -->
 
@@ -39,41 +30,437 @@
         <ul></ul>
       </nav>
       <section>
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+       <canvas id="pane" width="400" height="400" style="background:rgb(240,222,185)" onTouchStart="changelinedirection()">
+很抱歉，您的浏览器不支持我的游戏哦~
+</canvas>
+<input type="button" id="startgame" onTouchStart="startgame()"/>
+<script language="javascript">
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+var gamespeed=0.8;//小球速度
+var linespeed=Math.PI/100;
+var crashdistance=15;
+var gamedirection={
+	shang	: 1,
+	xia		: 5,
+	zuo		: 7,
+	you		: 3,
+	zuoshang: 8,
+	zuoxia	: 6,
+	youshang: 2,
+	youxia	: 4,
+	clock	: 0,
+	anticlock: 9,
+	};//方向
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+var canvas={
+	width : 400,
+	height: 400,
+	};//画布
+	
+var bigcircle = {//大圆参数
+        x : 0,    //圆心的x轴坐标值
+        y : 0,    //圆心的y轴坐标值
+        r : 180,  //圆的半径
+		c : 'rgb(255,255,255)',   
+    };//大圆
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+var smallcircle = {//小圆参数
+        x : 0,    //圆心的x轴坐标值
+        y : 0,    //圆心的y轴坐标值
+        r : 14,  //圆的半径
+		c : 'rgb(204,105,106)',
+		direction :  gamedirection.xia,
+    };//小圆
+	
+var line = {//挡板线的参数
+	x : 0,    //圆心的x轴坐标值
+    y : 0,    //圆心的y轴坐标值
+    r : 180 ,  //圆弧的半径
+ start:(Math.PI/2-Math.PI/32),
+  end :	(Math.PI/2+Math.PI/32),
+	c : 'rgb(55,55,55)',
+	direction: gamedirection.anticlock,
+	};//跟踪线
 
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+var dot = {//跟踪点参数
+	x	:	(bigcircle.r*Math.cos(line.start+Math.PI/16)),//以大圆为原点
+	y	:	(bigcircle.r*Math.sin(line.start+Math.PI/16)),
+	r	:	1,
+	}//跟踪点
+/*
+var dot1 = {//跟踪点参数
+	x	:	(bigcircle.r*Math.cos(line.start+Math.PI/16)),//以大圆为原点
+	y	:	(bigcircle.r*Math.sin(line.start+Math.PI/16)),
+	r	:	1,
+	}//跟踪点	
+var dot2 = {//跟踪点参数
+	x	:	(bigcircle.r*Math.cos(line.start+Math.PI/16)),//以大圆为原点
+	y	:	(bigcircle.r*Math.sin(line.start+Math.PI/16)),
+	r	:	1,
+	}//跟踪点	
+*/
+	
+function changelinedirection()
+{
+	if(line.direction==gamedirection.clock)
+	{
+		line.direction=gamedirection.anticlock;
+	}
+	else
+	{
+		line.direction=gamedirection.clock;
+	}
+}
+var objpane=document.getElementById("pane");
+var ctxpane=objpane.getContext("2d");
+ctxpane.translate(200,200);//必备 画布中心点平移
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+	
+function getdistance(){
+	var distance=(smallcircle.x - bigcircle.x)*(smallcircle.x - bigcircle.x)+(smallcircle.y - bigcircle.y)*(smallcircle.y - bigcircle.y);
+	return distance;
+	}//返回小球与大圆中心距离平方 getdistance()
+	
+function getangle(){
+	var absy=Math.abs(line.y - bigcircle.y);
+	var absx=Math.abs(line.x - bigcircle.x);
+	var tanangle=absy/absx;
+	}	//getangle()
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+function ifgameover(){//判断是否出界
+	if((getdistance() - bigcircle.r*bigcircle.r)>2)
+	return true;
+	else
+	return false;
+	}	//判断游戏是否结束 ifgameover()
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+function ifcrash(){		//碰撞检测
+	var dx = dot.x-smallcircle.x;
+	var dy = dot.y-smallcircle.y;
+	var dd=dx*dx+dy*dy;
+	if(dd< crashdistance* crashdistance)
+		return true;
+	else 
+		return false;
+	}//碰撞检测 ifcrash()
+	
+function randomback()
+{
+	var x=Math.floor(Math.random()*3);
+	switch (smallcircle.direction){				//根据小球方向做移动
+				case gamedirection.shang:
+				{
+					switch (x)
+					{
+						case 0:
+						smallcircle.direction=gamedirection.xia;
+						break;
+						case 1:
+						smallcircle.direction=gamedirection.zuoxia;
+						break;
+						case 2:
+						smallcircle.direction=gamedirection.youxia;
+						break;
+						default:
+						break;
+					}
+				}
+				case gamedirection.xia:
+				{
+					switch (x)
+					{
+						case 0:
+						smallcircle.direction=gamedirection.shang;
+						break;
+						case 1:
+						smallcircle.direction=gamedirection.zuoshang;
+						break;
+						case 2:
+						smallcircle.direction=gamedirection.youshang;
+						break;
+						default:
+						break;					
+					}
+				}
+			    case gamedirection.zuo:
+				{
+					switch (x)
+					{
+						case 0:
+						smallcircle.direction=gamedirection.you;
+						break;
+						case 1:
+						smallcircle.direction=gamedirection.youshang;
+						break;
+						case 2:
+						smallcircle.direction=gamedirection.youxia;
+						break;
+						default:
+						break;
+					}
+				}
+				case gamedirection.you:
+				{
+					switch (x)
+					{
+						case 0:
+						smallcircle.direction=gamedirection.zuo;
+						break;
+						case 1:
+						smallcircle.direction=gamedirection.zuoxia;
+						break;
+						case 2:
+						smallcircle.direction=gamedirection.zuoshang;
+						break;
+						default:
+						break;
+					}
+					
+				}
+				case gamedirection.zuoshang:
+				{
+					switch (x)
+					{
+						case 0:
+						smallcircle.direction=gamedirection.youxia;
+						break;
+						case 1:
+						smallcircle.direction=gamedirection.xia;
+						break;
+						case 2:
+						smallcircle.direction=gamedirection.you;
+						break;
+						default:
+						break;
+					}
+					
+				}
+				case gamedirection.zuoxia:
+				{
+					switch (x)
+					{
+						case 0:
+						smallcircle.direction=gamedirection.youshang;
+						break;
+						case 1:
+						smallcircle.direction=gamedirection.shang;
+						break;
+						case 2:
+						smallcircle.direction=gamedirection.you;
+						break;
+						default:
+						break;
+					}
+					
+				}
+				case gamedirection.youshang:
+				{
+					switch (x)
+					{
+						case 0:
+						smallcircle.direction=gamedirection.zuoxia;
+						break;
+						case 1:
+						smallcircle.direction=gamedirection.zuo;
+						break;
+						case 2:
+						smallcircle.direction=gamedirection.xia;
+						break;
+						default:
+						break;
+					}
+					
+				}
+				case gamedirection.youxia:
+				{
+					switch (x)
+					{
+						case 0:
+						smallcircle.direction=gamedirection.zuoshang;
+						break;
+						case 1:
+						smallcircle.direction=gamedirection.zuo;
+						break;
+						case 2:
+						smallcircle.direction=gamedirection.youshang;
+						break;
+						default:
+						break;
+					}
+					
+				}
+				default:
+				{
+					break;		
+				}
+			}	
+}//小球随机反向 randomback()
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+function smallcircledirection()
+{
+	switch (smallcircle.direction){				//根据小球方向做移动
+				case gamedirection.shang:
+				{
+					smallcircle.y=smallcircle.y-gamespeed;
+					break;
+				}
+				case gamedirection.xia:
+				{
+					smallcircle.y=smallcircle.y+gamespeed;
+					break;
+				}
+				case gamedirection.zuo:
+				{
+					smallcircle.x=smallcircle.x-gamespeed;
+					break;
+				}
+				case gamedirection.you:
+				{
+					smallcircle.x=smallcircle.x+gamespeed;
+					break;
+				}
+				case gamedirection.zuoshang:
+				{
+					smallcircle.x=smallcircle.x-gamespeed;
+					smallcircle.y=smallcircle.y-gamespeed;
+					break;
+				}
+				case gamedirection.zuoxia:
+				{
+					smallcircle.x=smallcircle.x-gamespeed;
+					smallcircle.y=smallcircle.y+gamespeed;
+					break;
+				}
+				case gamedirection.youshang:
+				{
+					smallcircle.x=smallcircle.x+gamespeed;
+					smallcircle.y=smallcircle.y-gamespeed;
+					break;
+				}
+				case gamedirection.youxia:
+				{
+					smallcircle.x=smallcircle.x+gamespeed;
+					smallcircle.y=smallcircle.y+gamespeed;
+					break;
+				}
+				default:
+				{
+					break;		
+				}
+			}	
+}//小球移动 smallcircledirection()
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+/*画出底部圆*/
+ctxpane.beginPath();	//大圆
+ctxpane.arc(bigcircle.x,bigcircle.y,bigcircle.r,0,Math.PI*2,true);
+ctxpane.fillStyle = bigcircle.c;
+ctxpane.fill();
+ctxpane.closePath();
 
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+/*画出底部追踪线条*/
+ctxpane.beginPath();
+ctxpane.lineWidth=4;
+ctxpane.strokeStyle = line.c;
+ctxpane.arc(line.x, line.y, line.r, line.start, line.end,false); 
+ctxpane.stroke(); 
+ctxpane.closePath();
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+
+function movetest(){
+	
+	if(ifgameover()&&(!ifcrash()))
+	{ 
+		clearInterval(timer);
+	}
+	else
+	{
+		if(ifcrash())
+			{
+				randomback();
+			}		
+ctxpane.clearRect(-200,-200,400,400);	//清屏
+	
+ctxpane.beginPath();	//大圆
+ctxpane.arc(bigcircle.x,bigcircle.y,bigcircle.r,0,Math.PI*2,true);
+ctxpane.fillStyle = bigcircle.c;
+ctxpane.fill();
+ctxpane.closePath();
+
+if(line.direction==gamedirection.clock)   //跟踪线顺时针
+{
+	line.start=line.start + linespeed;	
+	line.end=line.end +linespeed;
+	ctxpane.beginPath();
+	ctxpane.lineWidth=4;
+	ctxpane.strokeStyle = line.c;
+	ctxpane.arc(line.x, line.y, line.r, line.start, line.end,false); 
+	ctxpane.stroke(); 
+	ctxpane.closePath();	
+}
+if(line.direction==gamedirection.anticlock)									//跟踪逆顺时针
+{
+	line.start=line.start - linespeed;	
+	line.end=line.end -linespeed;
+	ctxpane.beginPath();
+	ctxpane.lineWidth=4;
+	ctxpane.strokeStyle = line.c;
+	ctxpane.arc(line.x, line.y, line.r, line.start, line.end,false); 
+	ctxpane.stroke(); 
+	ctxpane.closePath();		
+}
+	
+dot.x=bigcircle.r*Math.cos(line.start+Math.PI/32)	//跟踪点
+dot.y=bigcircle.r*Math.sin(line.start+Math.PI/32)
+ctxpane.beginPath();//线上跟踪点
+ctxpane.arc(dot.x,dot.y,dot.r,0,Math.PI*2,true);
+ctxpane.fillStyle = smallcircle.c;
+ctxpane.fill();
+ctxpane.closePath();	
+/*
+dot1.x=bigcircle.r*Math.cos(line.start+Math.PI/32)	//跟踪点1
+dot1.y=bigcircle.r*Math.sin(line.start+Math.PI/32)
+ctxpane.beginPath();//线上跟踪点
+ctxpane.arc(dot1.x,dot.y,dot1.r,0,Math.PI*2,true);
+ctxpane.fillStyle = smallcircle.c;
+ctxpane.fill();
+ctxpane.closePath();	
+
+dot2.x=bigcircle.r*Math.cos(line.start+Math.PI/32)	//跟踪点2
+dot2.y=bigcircle.r*Math.sin(line.start+Math.PI/32)
+ctxpane.beginPath();//线上跟踪点
+ctxpane.arc(dot2.x,dot.y,dot2.r,0,Math.PI*2,true);
+ctxpane.fillStyle = smallcircle.c;
+ctxpane.fill();
+ctxpane.closePath();	
+*/
+smallcircledirection();//小圆
+//ctxpane.save();
+ctxpane.beginPath();
+ctxpane.arc(smallcircle.x,smallcircle.y,smallcircle.r,0,Math.PI*2,true);
+ctxpane.fillStyle = smallcircle.c;
+ctxpane.fill();
+ctxpane.closePath();
+//ctxpane.restore();
+	}
+}//主函数
+
+ 
+var timer;
+function startgame(){//开始游戏
+	smallcircle.direction=gamedirection.xia;
+	smallcircle.x=smallcircle.y=0;
+	line.start=Math.PI/2-Math.PI/32;
+	line.end=Math.PI/2+Math.PI/32;
+	line.direction=gamedirection.anticlock;
+	
+	clearInterval(timer);
+	timer=setInterval(movetest,10);	
+	}//开始游戏 startgame() 	
+
+</script> 
       </section>
       <footer>
-        <p>Project maintained by <a href="https://github.com/ChenReason">ChenReason</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+        
       </footer>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
