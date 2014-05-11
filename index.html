@@ -19,19 +19,7 @@
 
   <body>
   
-  $(window).resize(resizeCanvas);  
-   
-	 function resizeCanvas() {  
-	  
-        canvas.attr("width", $(window).get(0).innerWidth);  
-   
-        canvas.attr("height", $(window).get(0).innerHeight);  
-   
-        context.fillRect(0, 0, canvas.width(), canvas.height());  
-   
- };  
-   
- resizeCanvas();  
+ 
     <header>
       <div class="inner">
         <h1>Pongo</h1>
@@ -49,6 +37,23 @@
 </canvas></center>
 <center><input type="button" id="startgame" onTouchStart="startgame()" value="再来"/></center>
 <script language="javascript">
+
+
+ $(window).resize(resizeCanvas);  
+   
+	 function resizeCanvas() {  
+	  
+        canvas.attr("width", $(window).get(0).innerWidth);  
+   
+        canvas.attr("height", $(window).get(0).innerHeight);  
+   
+        context.fillRect(0, 0, canvas.width(), canvas.height());  
+   
+ };  
+   
+ resizeCanvas();  
+
+
 
 var gamespeed=0.8;//小球速度
 var linespeed=Math.PI/100;
