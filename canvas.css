@@ -1,5 +1,29 @@
-* { margin: 0; padding: 0; }
- 
- html, body { height: 100%; width: 100%; }
- 
- canvas { display: block; }
+
+html {
+  font-size: 100%;
+  /* 1 */
+  -webkit-text-size-adjust: 100%;
+  /* 2 */
+  -ms-text-size-adjust: 100%;
+}
+
+
+button,
+input,
+select,
+textarea {
+  font-size: 100%;
+  /* 1 */
+  margin: 0;
+  /* 2 */
+  vertical-align: baseline;
+  /* 3 */
+  *vertical-align: middle;
+  /* 3 */
+}
+div,
+canvas{
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+}
