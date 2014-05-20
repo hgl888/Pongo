@@ -1,36 +1,126 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-<meta name="viewport" content="target-densitydpi=device-dpi, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">    
- <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">   
-    
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">   
 <title>Pongo+</title>
+    
 </head>
 
-<body>
- <center>   <div id="title" style="background:#9CC;" >
-        <h1 style="color:#960">Pongo+</h1>
-    </div></center>
-    <center><div id="fen">
-    <input type="button" id="dangqianchengji" value="当前成绩" style="width:150px;color:#C00;background:#6FF"/>
-    <input type="button" id="zuihaochengji" value="最好成绩"  style="width:150px;color:#C00;background:#6FF"/>
-    </div></center>
-<center><canvas id="pane" width="300" height="320" style="background:rgb(240,222,185)" onTouchStart="changelinedirection()">
-很抱歉，您的浏览器不支持我的游戏哦~
-</canvas></center>
-<div><br></div>
-<center><input type="button" id="startgame" onclick="startgame()" value="再来一次！"/></center>
-<center><h4 style="color:#30F">Just for fun By Reason</h4></center>
+<body onTouchStart="changelinedirection();startgame();"  onLoad="checkCookie()">
+<center><div id="title" style="background:rgb(153,255,0);" ><h1 style="color:rgb(254,255,182);font:'Times New Roman', Times, serif">Pongo+</h1></div></center>
+<center><canvas id="pane" width="300" height="300" style="background:rgb(240,222,185)"  >这游戏你绝对不能错过，手贱无极限！</canvas></center>
+
+<center>  <a style="font:'Times New Roman', Times, serif;color:rgb(51,153,255)">玩法:点击屏幕控制挡板别让小球溜出圈外<br></a></center>
+
+<center><input type="button" value="提交成绩"  onTouchStart="sendmail()">
+<input type="button" value="查看排行" onclick="opentop()" ></center>
+    
+<center><h4 style="color:#30F;display:inline">Just for fun By Reason<br>微博：<a href="http://weibo.com/1310499072/profile?topnav=1&wvr=5&user=1">ChenReason</a></h4></center>
+    
+
+    
 <script language="javascript">
-
-
-
+var ifingame=0;
 var maxgrade=0,grade=0;
-var gamespeed=1;//小球速度
-var linespeed=Math.PI/85;
-var crashdistance=15;
+var grade1,grade2;
+var nickname; 
+var gamespeed=1.4;//小球速度
+var linespeed=Math.PI/95;	//跟踪线速度
+var crashdistancefaild=-7;//碰撞检测参数
+var crashdistancesucc=15
+var fantanjuli=7;
+    
+var themaxgradeline=12.1;     
+    
+function getCookie1(nickname)
+{
+	if (document.cookie.length>0)
+	{ 
+		c_start=document.cookie.indexOf(nickname + "=")
+		if (c_start!=-1)
+		{ 
+			c_start=c_start + nickname.length+1;
+			c_end=document.cookie.indexOf(",",c_start);
+			if (c_end==-1) 
+                c_end=document.cookie.length;
+			return unescape(document.cookie.substring(c_start,c_end));
+		} 
+	}	
+	return ""
+}
+    
+function getCookie2(mymaxgrade)
+{
+	if (document.cookie.length>0)
+	{ 
+		c_start=document.cookie.indexOf(mymaxgrade + "=")
+		if (c_start!=-1)
+		{ 
+			c_start=c_start + mymaxgrade.length+1;
+			c_end=document.cookie.indexOf(";",c_start);
+			if (c_end==-1) 
+                c_end=document.cookie.length;
+			return unescape(document.cookie.substring(c_start,c_end));
+		} 
+	}	
+	return ""
+}    
+
+function setCookie(nickname,value,mymaxgrade,maxgrade,expiredays)
+{
+	var exdate=new Date()
+	exdate.setDate(exdate.getDate()+expiredays)
+	document.cookie=nickname+ "=" +escape(value)+"," + mymaxgrade + "=" + escape(maxgrade) + ((expiredays==null) ? "" : "; expires="+exdate.toGMTString());
+}
+
+function checkCookie()
+{
+	nickname=getCookie1('nickname');
+    maxgrade=parseInt(getCookie2('mymaxgrade'));
+       if(isNaN(maxgrade)==true)
+       {
+      	maxgrade=0;
+      }
+	if (nickname!=null && nickname!="")
+  	{
+        alert('欢迎'+nickname+'回来!'+'\n'+"如果喜欢请分享一下哈~");
+    }
+	else 
+  	{
+  		nickname=prompt('请输入你的昵称:（名字太长上榜可是会显示不完整的哦）',"")
+  		if (nickname!=null && nickname!="")
+   		{
+            var maxgradestring=maxgrade.toString();
+    		setCookie('nickname',nickname,'mymaxgrade',maxgradestring,365);
+    	}
+  	}
+}    
+      
+    
+var objpane=document.getElementById("pane");
+var ctxpane=objpane.getContext("2d");
+ctxpane.translate(150,150);//必备 画布中心点平移  
+    
+function sendmail()
+    	{
+            if(grade2>themaxgradeline)
+            var max_grade=grade2;
+            window.location.href='index.php?max_grade='+max_grade+'&nick_name='+nickname;
+            {
+            <?php
+			$grade=$_GET['max_grade'];
+			$nickname=$_GET['nick_name'];
+			$mail = new SaeMail();
+			$ret = $mail->quickSend( 'reasonpongo@163.com' , $grade , $nickname ,'reasonpongo@163.com' , 'mypongo' );
+			$mail->clean(); 
+			?>
+           }
+            alert(nickname+"你的成绩为："+grade2+"提交成功~");
+        }   
+		
+ 
+    
 var gamedirection={
 	shang	: 1,
 	xia		: 5,
@@ -46,7 +136,7 @@ var gamedirection={
 
 var canvas={
 	width : 300,
-	height: 320,
+	height: 300,
 	};//画布
 	
 var bigcircle = {//大圆参数
@@ -68,8 +158,8 @@ var line = {//挡板线的参数
 	x : 0,    //圆心的x轴坐标值
     y : 0,    //圆心的y轴坐标值
     r : 150 ,  //圆弧的半径
- start:(Math.PI/2-Math.PI/32),
-  end :	(Math.PI/2+Math.PI/32),
+    start:(Math.PI/2-Math.PI/16),
+    end :	(Math.PI/2+Math.PI/16),
 	c : 'rgb(55,55,55)',
 	direction: gamedirection.anticlock,
 	};//跟踪线
@@ -79,19 +169,7 @@ var dot = {//跟踪点参数
 	y	:	(bigcircle.r*Math.sin(line.start+Math.PI/16)),
 	r	:	1,
 	}//跟踪点
-/*
-var dot1 = {//跟踪点参数
-	x	:	(bigcircle.r*Math.cos(line.start+Math.PI/16)),//以大圆为原点
-	y	:	(bigcircle.r*Math.sin(line.start+Math.PI/16)),
-	r	:	1,
-	}//跟踪点	
-var dot2 = {//跟踪点参数
-	x	:	(bigcircle.r*Math.cos(line.start+Math.PI/16)),//以大圆为原点
-	y	:	(bigcircle.r*Math.sin(line.start+Math.PI/16)),
-	r	:	1,
-	}//跟踪点	
-*/
-	
+
 function changelinedirection()
 {
 	if(line.direction==gamedirection.clock)
@@ -103,24 +181,15 @@ function changelinedirection()
 		line.direction=gamedirection.clock;
 	}
 }
-var objpane=document.getElementById("pane");
-var ctxpane=objpane.getContext("2d");
-ctxpane.translate(150,150);//必备 画布中心点平移
-
 	
 function getdistance(){
-	var distance=(smallcircle.x - bigcircle.x)*(smallcircle.x - bigcircle.x)+(smallcircle.y - bigcircle.y)*(smallcircle.y - bigcircle.y);
+	var distance=Math.sqrt((smallcircle.x)*(smallcircle.x )+(smallcircle.y )*(smallcircle.y ));
 	return distance;
 	}//返回小球与大圆中心距离平方 getdistance()
 	
-function getangle(){
-	var absy=Math.abs(line.y - bigcircle.y);
-	var absx=Math.abs(line.x - bigcircle.x);
-	var tanangle=absy/absx;
-	}	//getangle()
 
 function ifgameover(){//判断是否出界
-	if((getdistance() - bigcircle.r*bigcircle.r)>2)
+	if((getdistance() - bigcircle.r)>5)
 	return true;
 	else
 	return false;
@@ -129,8 +198,8 @@ function ifgameover(){//判断是否出界
 function ifcrash(){		//碰撞检测
 	var dx = dot.x-smallcircle.x;
 	var dy = dot.y-smallcircle.y;
-	var dd=dx*dx+dy*dy;
-	if(dd< crashdistance* crashdistance)
+	var dd=Math.sqrt(dx*dx+dy*dy);
+	if(dd< crashdistancesucc)
 		return true;
 	else 
 		return false;
@@ -139,23 +208,28 @@ function ifcrash(){		//碰撞检测
 function randomback()
 {
 	var x=Math.floor(Math.random()*3);
-	switch (smallcircle.direction){				//根据小球方向做移动
+	switch (smallcircle.direction){				
 				case gamedirection.shang:
 				{
 					switch (x)
 					{
 						case 0:
 						smallcircle.direction=gamedirection.xia;
+                        smallcircle.y=smallcircle.y+fantanjuli;
 						break;
 						case 1:
 						smallcircle.direction=gamedirection.zuoxia;
+                        smallcircle.x=smallcircle.x-fantanjuli;
+						smallcircle.y=smallcircle.y+fantanjuli;	
 						break;
 						case 2:
 						smallcircle.direction=gamedirection.youxia;
+                        smallcircle.x=smallcircle.x+fantanjuli;
+						smallcircle.y=smallcircle.y+fantanjuli;
 						break;
 						default:
 						break;
-					}
+					}	break;
 				}
 				case gamedirection.xia:
 				{
@@ -163,16 +237,21 @@ function randomback()
 					{
 						case 0:
 						smallcircle.direction=gamedirection.shang;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						case 1:
 						smallcircle.direction=gamedirection.zuoshang;
+						smallcircle.x=smallcircle.x-fantanjuli;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						case 2:
 						smallcircle.direction=gamedirection.youshang;
+						smallcircle.x=smallcircle.x+fantanjuli;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						default:
 						break;					
-					}
+					}	break;
 				}
 			    case gamedirection.zuo:
 				{
@@ -180,16 +259,21 @@ function randomback()
 					{
 						case 0:
 						smallcircle.direction=gamedirection.you;
+						smallcircle.x=smallcircle.x+fantanjuli;
 						break;
 						case 1:
 						smallcircle.direction=gamedirection.youshang;
+						smallcircle.x=smallcircle.x+fantanjuli;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						case 2:
 						smallcircle.direction=gamedirection.youxia;
+						smallcircle.x=smallcircle.x+fantanjuli;
+						smallcircle.y=smallcircle.y+fantanjuli;
 						break;
 						default:
 						break;
-					}
+					}	break;
 				}
 				case gamedirection.you:
 				{
@@ -197,16 +281,21 @@ function randomback()
 					{
 						case 0:
 						smallcircle.direction=gamedirection.zuo;
+						smallcircle.x=smallcircle.x-fantanjuli;
 						break;
 						case 1:
 						smallcircle.direction=gamedirection.zuoxia;
+						smallcircle.x=smallcircle.x-fantanjuli;
+						smallcircle.y=smallcircle.y+fantanjuli;
 						break;
 						case 2:
 						smallcircle.direction=gamedirection.zuoshang;
+						smallcircle.x=smallcircle.x-fantanjuli;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						default:
 						break;
-					}
+					}	break;
 					
 				}
 				case gamedirection.zuoshang:
@@ -215,16 +304,20 @@ function randomback()
 					{
 						case 0:
 						smallcircle.direction=gamedirection.youxia;
+						smallcircle.x=smallcircle.x+fantanjuli;
+						smallcircle.y=smallcircle.y+fantanjuli;
 						break;
 						case 1:
 						smallcircle.direction=gamedirection.xia;
+						smallcircle.y=smallcircle.y+fantanjuli;
 						break;
 						case 2:
 						smallcircle.direction=gamedirection.you;
+						smallcircle.x=smallcircle.x+fantanjuli;
 						break;
 						default:
 						break;
-					}
+					}	break;
 					
 				}
 				case gamedirection.zuoxia:
@@ -233,16 +326,20 @@ function randomback()
 					{
 						case 0:
 						smallcircle.direction=gamedirection.youshang;
+						smallcircle.x=smallcircle.x+fantanjuli;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						case 1:
 						smallcircle.direction=gamedirection.shang;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						case 2:
 						smallcircle.direction=gamedirection.you;
+						smallcircle.x=smallcircle.x+fantanjuli;
 						break;
 						default:
 						break;
-					}
+					}	break;
 					
 				}
 				case gamedirection.youshang:
@@ -251,16 +348,20 @@ function randomback()
 					{
 						case 0:
 						smallcircle.direction=gamedirection.zuoxia;
+						smallcircle.x=smallcircle.x-fantanjuli;
+						smallcircle.y=smallcircle.y+fantanjuli;
 						break;
 						case 1:
 						smallcircle.direction=gamedirection.zuo;
+						smallcircle.x=smallcircle.x-fantanjuli;
 						break;
 						case 2:
 						smallcircle.direction=gamedirection.xia;
+						smallcircle.y=smallcircle.y+fantanjuli;
 						break;
 						default:
 						break;
-					}
+					}	break;
 					
 				}
 				case gamedirection.youxia:
@@ -269,16 +370,20 @@ function randomback()
 					{
 						case 0:
 						smallcircle.direction=gamedirection.zuoshang;
+						smallcircle.x=smallcircle.x-fantanjuli;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						case 1:
 						smallcircle.direction=gamedirection.zuo;
+						smallcircle.x=smallcircle.x-fantanjuli;
 						break;
 						case 2:
-						smallcircle.direction=gamedirection.youshang;
+						smallcircle.direction=gamedirection.shang;
+						smallcircle.y=smallcircle.y-fantanjuli;
 						break;
 						default:
 						break;
-					}
+					}	break;
 					
 				}
 				default:
@@ -296,8 +401,11 @@ function smallcircledirection()
 					smallcircle.y=smallcircle.y-gamespeed;
 					grade++;
 					if(grade>maxgrade)
-					maxgrade=grade;
-				    showgrade();
+					{
+                        maxgrade=grade;
+                     	newrecoder();
+                    }
+					addone();
 					break;
 				}
 				case gamedirection.xia:
@@ -305,8 +413,11 @@ function smallcircledirection()
 					smallcircle.y=smallcircle.y+gamespeed;
 					grade++;
 					if(grade>maxgrade)
-					maxgrade=grade;
-				    showgrade();
+					{
+                        maxgrade=grade;
+                     	newrecoder();
+                    }
+					addone();
 					break;
 				}
 				case gamedirection.zuo:
@@ -314,8 +425,11 @@ function smallcircledirection()
 					smallcircle.x=smallcircle.x-gamespeed;
 					grade++;
 					if(grade>maxgrade)
-					maxgrade=grade;
-				    showgrade();
+					{
+                        maxgrade=grade;
+                     	newrecoder();
+                    }
+					addone();
 					break;
 				}
 				case gamedirection.you:
@@ -323,48 +437,63 @@ function smallcircledirection()
 					smallcircle.x=smallcircle.x+gamespeed;
 					grade++;
 					if(grade>maxgrade)
-					maxgrade=grade;
-				    showgrade();
+					{
+                        maxgrade=grade;
+                     	newrecoder();
+                    }
+					addone();
 					break;
 				}
 				case gamedirection.zuoshang:
 				{
-					smallcircle.x=smallcircle.x-gamespeed;
-					smallcircle.y=smallcircle.y-gamespeed;
+					smallcircle.x=smallcircle.x-gamespeed*0.8;
+					smallcircle.y=smallcircle.y-gamespeed*0.8;
 					grade++;
 					if(grade>maxgrade)
-					maxgrade=grade;
-				    showgrade();
+					{
+                        maxgrade=grade;
+                     	newrecoder();
+                    }
+					addone();
 					break;
 				}
 				case gamedirection.zuoxia:
 				{
-					smallcircle.x=smallcircle.x-gamespeed;
-					smallcircle.y=smallcircle.y+gamespeed;
+					smallcircle.x=smallcircle.x-gamespeed*0.8;
+					smallcircle.y=smallcircle.y+gamespeed*0.8;
 					grade++;
 					if(grade>maxgrade)
-					maxgrade=grade;
-				    showgrade();
+					{
+                        maxgrade=grade;
+                     	newrecoder();
+                    }
+					addone();
 					break;
 				}
 				case gamedirection.youshang:
 				{
-					smallcircle.x=smallcircle.x+gamespeed;
-					smallcircle.y=smallcircle.y-gamespeed;
+					smallcircle.x=smallcircle.x+gamespeed*0.8;
+					smallcircle.y=smallcircle.y-gamespeed*0.8;
 					grade++;
 					if(grade>maxgrade)
-					maxgrade=grade;
-				    showgrade();
+					{
+                        maxgrade=grade;
+                     	newrecoder();
+                    }
+					addone();
 					break;
 				}
 				case gamedirection.youxia:
 				{
-					smallcircle.x=smallcircle.x+gamespeed;
-					smallcircle.y=smallcircle.y+gamespeed;
+					smallcircle.x=smallcircle.x+gamespeed*0.8;
+					smallcircle.y=smallcircle.y+gamespeed*0.8;
 					grade++;
 					if(grade>maxgrade)
-					maxgrade=grade;
-				    showgrade();
+					{
+                        maxgrade=grade;
+                     	newrecoder();
+                    }
+					addone();
 					break;
 				}
 				default:
@@ -383,37 +512,75 @@ ctxpane.closePath();
 
 /*画出底部追踪线条*/
 ctxpane.beginPath();
-ctxpane.lineWidth=4;
+ctxpane.lineWidth=6;
 ctxpane.strokeStyle = line.c;
 ctxpane.arc(line.x, line.y, line.r, line.start, line.end,false); 
 ctxpane.stroke(); 
 ctxpane.closePath();
 
-
-function showgrade(){
-	var grade1=grade/150;
-	var grade2=maxgrade/150;
-	document.getElementById("dangqianchengji").value="当前成绩为："+(grade1).toFixed(1)+"米";
-	document.getElementById("zuihaochengji").value="最好成绩为："+(grade2).toFixed(1)+"米";
+function tapme()//tapme
+{
+	ctxpane.beginPath();
+	ctxpane.strokeStyle="rgb(255,222,195)";
+	ctxpane.font = "80px Papyrus";
+	ctxpane.strokeText('TAP',-95,30);
+	ctxpane.fillStyle="rgb(255,205,105)";
+	ctxpane.font = "35px Papyrus";
+	ctxpane.fillText('me',70,30);
+	ctxpane.closePath();
 	}
+
+function newrecoder() 
+{
+	ctxpane.beginPath();
+	ctxpane.fillStyle="rgb(255,0,0)";
+	ctxpane.font = "18px Papyrus";
+	ctxpane.fillText("New!",58,80);
+	ctxpane.closePath();
+	} 
+    
+function addone()
+{
+	grade1=(grade/150).toFixed(1);
+	grade2=(maxgrade/150).toFixed(1);
+	var say1="now";
+	var say2="best"
+	ctxpane.beginPath();
+	ctxpane.strokeStyle="rgb(250,222,185)";
+	ctxpane.font = "60px Papyrus";
+	ctxpane.strokeText(grade1,-45,-60);
+	ctxpane.strokeText(grade2,-45,100);
+	
+	ctxpane.fillStyle="rgb(255,0,100)";
+	ctxpane.font = "15px Papyrus";
+	ctxpane.fillText(say1,58,-60);
+	
+	ctxpane.fillStyle="rgb(255,0,100)";
+	ctxpane.font = "15px Papyrus";
+	ctxpane.fillText(say2,58,100);
+	ctxpane.closePath();
+}
 
 function movetest(){
 	
-	if(ifgameover()&&(!ifcrash()))
+	if(ifgameover())
 	{ 
+        ifingame=0;
+        if(maxgrade>parseInt(getCookie2('mymaxgrade')))
+		{
+			setCookie('nickname',nickname,'mymaxgrade',maxgrade.toString(),365);		
+		}
 		clearInterval(timer);
+		tapme();
+
 	}
 	else
 	{
 		if(ifcrash())
 			{
 				randomback();
-			//	grade++;
-				//if(grade>maxgrade)
-			//		maxgrade=grade;
-			//	showgrade();
-			}		
-ctxpane.clearRect(-150,-150,300,320);	//清屏
+			}	
+ctxpane.clearRect(-150,-150,300,300);	//清屏
 	
 ctxpane.beginPath();	//大圆
 ctxpane.arc(bigcircle.x,bigcircle.y,bigcircle.r,0,Math.PI*2,true);
@@ -452,37 +619,78 @@ ctxpane.fillStyle = smallcircle.c;
 ctxpane.fill();
 ctxpane.closePath();	
 smallcircledirection();//小圆
-//ctxpane.save();
+ctxpane.save();
 ctxpane.beginPath();
 ctxpane.arc(smallcircle.x,smallcircle.y,smallcircle.r,0,Math.PI*2,true);
 ctxpane.fillStyle = smallcircle.c;
 ctxpane.fill();
 ctxpane.closePath();
-//ctxpane.restore();
+ctxpane.restore();
 	}
 }//主函数
 
+
+  
+    ///////////////////////////////////////////
+tapme();
 var timer;
 function startgame(){//开始游戏
-	grade=0;
-	showgrade();
-	smallcircle.direction=gamedirection.xia;
+    
+
+    if(ifingame==0)
+    {
+        ifingame=1;
+        grade=0;
+        var xx=Math.floor(Math.random()*8);
+        /*      switch(xx)
+        {
+            case 0:
+			smallcircle.direction=gamedirection.shang;
+			break;
+			case 1:
+			smallcircle.direction=gamedirection.xia;
+			break;
+			case 2:
+			smallcircle.direction=gamedirection.zuo;
+			break;
+			case 3:
+			smallcircle.direction=gamedirection.you;
+			break;
+			case 4:
+			smallcircle.direction=gamedirection.zuoshang;
+			break;
+			case 5:
+			smallcircle.direction=gamedirection.zuoxia;
+			break;
+			case 6:
+			smallcircle.direction=gamedirection.youshang;
+			break;
+			case 7:
+			smallcircle.direction=gamedirection.youxia;
+			break;
+			default:
+			break;
+        }*/
+    smallcircle.direction=gamedirection.xia;
 	smallcircle.x=smallcircle.y=0;
-	line.start=Math.PI/2-Math.PI/32;
-	line.end=Math.PI/2+Math.PI/32;
+	line.start=Math.PI/2-Math.PI/26;
+	line.end=Math.PI/2+Math.PI/26;
 	line.direction=gamedirection.anticlock;
 	
 	clearInterval(timer);
-	timer=setInterval(movetest,1);	
+	timer=setInterval(movetest,10);
+    }
 	}//开始游戏 startgame() 	
+    
+    function opentop()
+    {
+        window.location="http://pongotop.sinaapp.com";
+    }
 
 </script>
-  <center>  
- <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1000419404'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/z_stat.php%3Fid%3D1000419404%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script></center>   
  
-<div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间">QQ空间</a><a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网">人人网</a></div>
-<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16},"image":{"viewList":["weixin","tsina","qzone","renren"],"viewText":"分享到：","viewSize":"16"},"selectShare":{"bdContainerClass":null,"bdSelectMiniList":["weixin","tsina","qzone","renren"]}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
-	</center>
-
+  
+<center>  
+ <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1000419404'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/z_stat.php%3Fid%3D1000419404%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script></center>   
 </body>
 </html>
