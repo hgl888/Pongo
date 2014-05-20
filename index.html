@@ -107,15 +107,15 @@ function sendmail()
             if(grade2>themaxgradeline)
             var max_grade=grade2;
             window.location.href='index.php?max_grade='+max_grade+'&nick_name='+nickname;
-            {
-            <?php
+        /*    {
+            		<?php
 			$grade=$_GET['max_grade'];
 			$nickname=$_GET['nick_name'];
 			$mail = new SaeMail();
 			$ret = $mail->quickSend( 'reasonpongo@163.com' , $grade , $nickname ,'reasonpongo@163.com' , 'mypongo' );
 			$mail->clean(); 
 			?>
-           }
+           }*/
             alert(nickname+"你的成绩为："+grade2+"提交成功~");
         }   
 		
